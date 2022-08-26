@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+'''
+Automatically fixes the checksum of chunks in a PNG.
+The structure of the PNG must be valid before launching it !
+'''
+
 import sys
 from zlib import crc32
 

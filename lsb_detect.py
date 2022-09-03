@@ -25,7 +25,7 @@ def extract_lsb(size, pixels, bit):
     for x in range(width):
         for y in range(height):
             r, g, b = pixels[x, y]
-            nr, ng, nb = [ ( x & (1 << bit) ) * 255 for x in (r, g, b) ]
+            nr, ng, nb = [ ( (x >> bit) & 1 ) * 255 for x in (r, g, b) ]
             new_pixels[x, y] = (nr, ng, nb)
     
     return output

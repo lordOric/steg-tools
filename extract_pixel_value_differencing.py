@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from math import floor, log, log2
 from PIL import Image
 import sys
 

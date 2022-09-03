@@ -29,6 +29,6 @@ for x in range(width):
         new_pixels[x, y] = (a*255, a*255, a*255)
 
 
-file_output = f'{filename}_alpha.{extension}'
+file_output = f'{filename}_alpha{extension}'
 print(f'Saving result in {file_output}')
 output.save(file_output)

@@ -6,7 +6,6 @@ Returns the frequency of each color found in an image
 
 # pip install Pillow
 from PIL import Image
-from os.path import splitext
 import sys
 
 if len(sys.argv) != 2:

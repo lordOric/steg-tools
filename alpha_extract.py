@@ -6,14 +6,12 @@ Extract the alpha plan (transparency) of an image as hexadecimal values
 
 # pip install Pillow
 from PIL import Image
-from os.path import splitext
 import sys
 
 if len(sys.argv) != 2:
     print(f'Syntax: {sys.argv[0]} <image>')
     exit(-1)
 file_input = sys.argv[1]
-filename, extension = splitext(file_input)
 
 
 input = Image.open(file_input)

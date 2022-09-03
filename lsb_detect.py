@@ -35,7 +35,7 @@ size = input.size
 pixels = input.load()
 
 for bit in range(8):
-    file_output = f'{filename}_bit{bit}.{extension}'
+    file_output = f'{filename}_bit{bit}{extension}'
     print(f'Extracting bit {bit} in {file_output}')
     output = extract_lsb(size, pixels, bit)
     output.save(file_output)

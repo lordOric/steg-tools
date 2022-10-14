@@ -24,8 +24,8 @@ def extract_lsb(size, pixels, bit):
 
     for x in range(width):
         for y in range(height):
-            r, g, b = pixels[x, y]
-            nr, ng, nb = [ ( (x >> bit) & 1 ) * 255 for x in (r, g, b) ]
+            colors = pixels[x, y]               
+            nr, ng, nb = [ ( (x >> bit) & 1 ) * 255 for x in (colors[0], colors[1], colors[2]) ]
             new_pixels[x, y] = (nr, ng, nb)
     
     return output

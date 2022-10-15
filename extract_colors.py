@@ -18,8 +18,8 @@ input = Image.open(file_input)
 width, height = input.size
 pixels = input.load()
 
-for x in range(width):
-    for y in range(height):
+for y in range(height):
+    for x in range(width):
         colors = pixels[x, y]
         print(f'{colors[0]:02x} {colors[1]:02x} {colors[2]:02x} ', end='')
-print()
+    print()

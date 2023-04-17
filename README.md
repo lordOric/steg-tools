@@ -7,3 +7,4 @@
 - [alpha_extract.py](alpha_extract.py): extract the alpha plan (transparency) of an image as hexadecimal values.
 - [extract_pixel_indicator.py](extract_pixel_indicator.py: extract a message hidden by [the pixel indicator technique](https://www.semanticscholar.org/paper/Pixel-Indicator-Technique-for-RGB-Image-Gutub/b3cd1fd840c74427750b9e1ed1ebed7a8d629cbb?p2df).
 - [extract_pixel_value_differencing.py](extract_pixel_value_differencing.py): extract a message hidden by [the pixel value differencing technique](https://people.cs.nctu.edu.tw/~whtsai/Journal%20Paper%20PDFs/Wu_&_Tsai_PRL_2003.pdf)
+- [puzzle.html](Allows to solve a scrambled image manually and export the result)

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Puzzle</title>
+    <style>
+  
+  #dropzones {
+    width:100%;
+    height:100%;
+    display:grid;
+  }
+  
+  .dropzone {
+    position:relative;
+  }
+  .puzzle {
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+  }
+  .puzzle:hover {
+    box-shadow:0 0 5px 1px red,0 0 0 1px black;
+    z-index:2;
+  }
+  .puzzle.dragging {
+  }
+  
+  body {
+    min-height:100vh;
+    display:grid;
+    grid-template-areas:
+      "d d d d d"
+      "d d d d d"
+      "d d d d d"
+      "c c c c c";
+    grid-template-rows:repeat(3,1fr) 0.2fr;
+    grid-template-columns:repeat(5,1fr);
+    background:radial-gradient(#444,#222);
+  }
+  
+  #controls { 
+    grid-area:c;
+    display:flex; width:100%;
+    color:#eee;
+  }
+  .control {
+    flex:1 1 auto;
+    display:flex; flex-flow:column nowrap;
+  }
+  .control .label {
+    height:1em;
+    flex:0 0 auto;
+  }
+  .control input, .control select, .control button, .control option {
+    flex:1 1 auto;
+    width:100%;
+    box-sizing:border-box; 
+    border:thin #aaa solid;
+    border-bottom:0 none;
+    margin:0;
+    padding:0 0.5em;
+  }
+  
+  #dropzones-wrap { 
+    grid-area:d;
+    width:100%; height:100%;
+    display:flex;align-items:center;justify-content:center;
+    padding:30px;box-sizing:border-box;
+  }
+  
+  @keyframes solved {
+    0% {opacity:1;transform:scale(1)}
+    10% {opacity:0;transform:rotateY(12deg)}
+    25% {opacity:1;transform:scale(0.8)}
+    50%{opacity:0;transfrom:scale(1)}
+    100%{opacity:1;transform:rotateY(-12deg);}
+  }
+    </style>
+  </head>
+</html>
+<body> 
+  <div id="controls">
+    <div class="control">
+      <div class="label">Image source</div>
+      <input id="imageSourceInput">
+    </div>
+    <div class="control">
+      <div class="label">Columns</div>
+      <input id="levelSelectX" type="text">
+    </div>
+    <div class="control">
+        <div class="label">Rows</div>
+        <input id="levelSelectY" type="text">
+    </div>
+    <div class="control"> 
+      <div class="label">Start puzzle</div>
+      <button id="start">Go!</button>
+    </div>
+    <div class="control"> 
+      <div class="label">Export the result</div>
+      <button id="export">Go!</button>
+    </div>
+  </div>
+  <div id="dropzones-wrap">
+    <div id="dropzones"></div>
+  </div>
+  <canvas id="canvas" hidden="true"></canvas>
+
+<script>
+const dropZoneContainer = document.querySelector("#dropzones");
+const levelSelectX = document.querySelector("#levelSelectX");
+const levelSelectY = document.querySelector("#levelSelectY");
+const imageSourceInput = document.querySelector("#imageSourceInput");
+const exportButton = document.querySelector("#export");
+const startButton = document.querySelector("#start");
+const canvas = document.querySelector("#canvas");
+
+/* listen events */
+startButton.addEventListener("click", rebuild);
+exportButton.addEventListener("click", export_result);
+
+/* Get id */
+function getFragsId() {
+  return Array.from(document.querySelectorAll(".puzzle")).map(x => x.id);
+}
+
+/* facade of build() */
+function rebuild() {
+  const imgsrc = imageSourceInput.value;
+  const [rows,cols] = [levelSelectY.value, levelSelectX.value];
+  build(dropZoneContainer, rows, cols, imgsrc);
+  var imageObj = new Image();
+  imageObj.src = imageSourceInput.value
+  canvas.width = imageObj.width;
+  canvas.height = imageObj.height;
+}
+
+/* diable all controls when image is loading */
+function disableAllControls() {
+  imageSourceInput.disabled = true;
+  levelSelectX.disabled = true;
+  levelSelectY.disabled = true;
+}
+
+function enableAllControls() {
+  imageSourceInput.disabled = false;
+  levelSelectX.disabled = false;
+  levelSelectY.disabled = false;
+}
+
+function build(container, rows, cols, imageSource) {
+  container.innerHTML = '';
+  disableAllControls();
+  const image = new Image();
+  image.addEventListener("load", e => {
+    initialDropZoneContainer(container, rows, cols, e.target);
+    enableAllControls();
+  });
+  image.addEventListener("error", e => {
+    console.alert(`Failed to load image ${e.target.src}`);
+    enableAllControls(); // anyway
+  })
+  image.src = imageSource;
+}
+
+/* Drag Drop Event handlers */
+function onDragStart(e) {
+  e.dataTransfer.setData("text/elm-id", e.currentTarget.id);
+  // DO NOT use "text/plain" channel, FF will treat it as url and page is redirected.
+  e.currentTarget.classList.add("dragging");
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+}
+
+function onDrop(e) {
+  const elementIdAttribute = e.dataTransfer.getData("text/elm-id");
+  const elementA = document.getElementById(elementIdAttribute);
+  const elementB = e.currentTarget.querySelector(".puzzle");
+  swapPuzzleElements(elementA, elementB);
+  elementA.classList.remove("dragging");
+}
+
+/*
+Setup drop zone container
+1- deploy container element
+2- create drop zone elements and append to container
+3- create puzzle elements and append drop zone elements
+4- shuffle puzzle elements
+*/
+function initialDropZoneContainer(container, rows, cols, image) {
+  
+  // 1 (container grid layout)
+  container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+  container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  
+  // 1 (container dimensions)
+  if (image.width>image.height) {
+    const containerWidth = Number.parseFloat(getComputedStyle(container).width, 10);
+    const containerHeight = containerWidth * image.height / image.width;
+    container.style.height = `${containerHeight}px`;
+  }
+  else {
+    const containerHeight = Number.parseFloat(getComputedStyle(container).height, 10);
+    const containerWidth = containerHeight * image.width / image.height;
+    container.style.width = `${containerWidth}px`;
+  }
+  
+  // 2
+  const dropZoneElements = createDropZoneElements(rows * cols);
+  for (const el of dropZoneElements)
+    container.appendChild(el);
+  
+  // 3
+  const puzzleElements = createPuzzleElements(rows, cols, image);
+  for (const [i, el] of puzzleElements.entries())
+    dropZoneElements[i].appendChild(el);   
+}
+
+
+
+/* 
+Create array of puzzle elms 
+*/
+function createPuzzleElements(rows, cols, image) {
+  const elements = [];
+  for (let y = 0; y < rows; ++y) {
+    for (let x = 0; x < cols; ++x) {
+      const el = document.createElement("div");
+      const i = cols * y + x;
+      el.draggable = true;
+      el.addEventListener("dragstart", onDragStart);
+      el.id = `${i}`;
+      el.dataset.puzzleId = i;
+      el.classList.add("puzzle");
+      //el.textContent = i; // debug only
+      el.style.backgroundImage = `url(${image.src})`;
+      el.style.backgroundSize = `${cols*100}% ${rows*100}%`;
+      el.style.backgroundPosition = `${x/(cols-1)*100}% ${y/(rows-1)*100}%`;
+      elements.push(el);;
+    }
+  }
+  return elements;
+}
+
+
+
+/* 
+Create array of dropzone elms
+*/
+function createDropZoneElements(n) {
+  const elements = [];
+  for (let i = 0; i < n; ++i) {
+    const el = document.createElement("div");
+    el.addEventListener("dragover", onDragOver);
+    el.addEventListener("drop", onDrop);
+    el.dataset.dropZoneId = i;
+    el.classList.add("dropzone");
+    //el.textContent = i; // debug only
+    elements.push(el);
+  }
+  return elements;
+}
+
+/* 
+Swap puzzle elements
+*/
+function swapPuzzleElements(elementA, elementB) {
+  const containerA = elementA.parentNode;
+  const containerB = elementB.parentNode;
+  
+  containerB.appendChild(elementA);
+  containerA.appendChild(elementB);
+}
+
+/*
+Create and save the result
+*/
+
+function nToXy(n, width, height, nrows, ncols) {
+  return [ (n % ncols) * width, Math.floor(n/ncols) * height ]
+}
+
+function export_result() {
+      var canvas = document.getElementById('canvas');
+      var context = canvas.getContext('2d');
+      var imageObj = new Image();
+      imageObj.src = imageSourceInput.value
+
+      imageObj.onload = function() {
+        var frags = getFragsId();
+        var nrows = levelSelectY.value;
+        var ncols = levelSelectX.value;
+        var width = imageObj.width / ncols;
+        var height = imageObj.height / nrows;
+        frags.forEach( function(fragId, index, array) {
+          var [destX, destY] = nToXy(index, width, height, nrows, ncols);
+          var [sourceX, sourceY] = nToXy(fragId, width, height, nrows, ncols);
+          context.drawImage(imageObj, sourceX, sourceY, width, height, destX, destY, width, height);
+        });
+        window.open(canvas.toDataURL());
+      };
+}
+  </script>
+</body>

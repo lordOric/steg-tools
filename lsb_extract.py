@@ -6,14 +6,17 @@ Extract the LSB of an image and store it in a file
 
 # pip install Pillow
 from PIL import Image
-from itertools import chain
 import sys
 
 if len(sys.argv) != 4:
     print(f'Syntax: {sys.argv[0]} <input> <bit-plan (0-7)> <output>')
     exit(-1)
-file_input = sys.argv[1]
+if sys.argv[1] == '-':
+    file_input = sys.stdin.buffer
+else:
+    file_input = sys.argv[1]
 bit_plan = int(sys.argv[2])
+   
 file_output = sys.argv[3]
 
 input = Image.open(file_input)

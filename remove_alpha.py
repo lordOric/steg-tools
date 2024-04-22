@@ -18,6 +18,6 @@ else:
 if sys.argv[2] == '-':
     file_output = sys.stdout.buffer
 else:
-    file_input = sys.argv[2]
+    file_output = sys.argv[2]
 
 Image.open(file_input).convert('RGB').save(file_output, format='png')

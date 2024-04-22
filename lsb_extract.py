@@ -27,6 +27,8 @@ bits = [ ( x >> bit_plan ) & 1 for x in data ]
 content = list()
 for i in range(0, len(bits), 8):
     byte = bits[i:i+8]
+    if len(byte) < 8:
+        break
     byte = sum([byte[b] << (7 - b) for b in range(0, 8)])
     content.append(byte)
 open(file_output, 'wb').write(bytes(content))
